@@ -1,4 +1,0 @@
-----------------
-lokalna baza
-password: password
-port:5432
