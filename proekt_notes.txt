@@ -1,0 +1,11 @@
+- imame postoecko skladiste
+- go zemame sql kodot so koj e generirano skladisteto, dimenzionte tabeli i site fakt tabeli
+- gi naogjame join izrazite shto gi polnat tabelite
+- generirame proceduri za inkrementalno polnenje na tabelite, i proceduri za SCD type 1, scdt type 2 promeni
+- generirame log tabeli
+
+------------
+
+tldr za postoecko skladiste
+proceduri za update i inkrementalno polnenje na fakt tabeli, dimenzioni tabeli
+generiranje na log tabeli

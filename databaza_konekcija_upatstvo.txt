@@ -1,0 +1,20 @@
+cmd:
+
+plink -N -L 5433:localhost:5432 tunel_bazi@194.149.136.146
+
+pass: tunelot2020
+
+
+
+
+--------------
+
+user i pass na bazata:
+user: u171201
+pass: pass171201
+
+
+----------------
+lokalna baza
+password: password
+port:5432

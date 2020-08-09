@@ -1,0 +1,7 @@
+dim_name,table_schema,table_name,column_name
+dim_admins,platforma,admins,userid
+dim_admins,platforma,users,firstname
+dim_admins,platforma,users,lastname
+dim_students,platforma,students,userid
+dim_students,platforma,users,firstname
+dim_students,platforma,users,lastname
