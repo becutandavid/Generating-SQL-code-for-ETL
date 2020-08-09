@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+import math
 
 class Attribute:
     metadata = pd.read_csv("tables_columns_metadata.csv")
@@ -9,9 +9,18 @@ class Attribute:
         self.table = table
         self.attribute = attribute
 
-        self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == 'platforma', np.logical_and(metadata['table_name'] == 'admins', metadata['column_name'] == 'id')),'udt_name'][0]
-        self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == 'platforma', np.logical_and(metadata['table_name'] == 'admins', metadata['column_name'] == 'id')),'nullable'][0] == 'YES' else False
-        self.length = int(metadata.loc[np.logical_and(metadata['table_schema'] == 'platforma', np.logical_and(metadata['table_name'] == 'admins', metadata['column_name'] == 'id')),'character_maximum_length'][0])
+        metadata = self.metadata
+
+        self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'udt_name'].to_numpy()[0]
+        self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'is_nullable'].to_numpy()[0] == 'YES' else False
+        self.length = Attribute.nan_convert(metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'character_maximum_length'].to_numpy()[0])
+
+    @staticmethod
+    def nan_convert(x):
+        if (math.isnan(x)):
+            return 0
+        else:
+            return int(x)
 
     def is_nullable(self):
         if self.nullable:
@@ -22,6 +31,8 @@ class Attribute:
     def ddl(self):
         if self.data_type in ["char", "varchar"]:
             return f"{self.attribute} {self.data_type}({self.length}){self.is_nullable()}"
+        else:
+            return f"{self.attribute} {self.data_type}{self.is_nullable()}"
     
 
 
