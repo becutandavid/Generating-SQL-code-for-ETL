@@ -24,7 +24,3 @@ class Dimension:
 
         return ",\n".join(sql)+"\n)"
 
-
-if __name__=="__main__":
-    dim = Dimension("dim_admins")
-    print(dim.ddl())

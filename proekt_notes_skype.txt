@@ -1,5 +1,0 @@
-load date / modified date za scd type 1
-
-
-information schema -- metadata table vo ms sql
-
