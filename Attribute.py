@@ -3,13 +3,11 @@ import pandas as pd
 import math
 
 class Attribute:
-    metadata = pd.read_csv("tables_columns_metadata.csv")
-    def __init__(self, schema, table, attribute):
+    def __init__(self, schema, table, attribute, metadata):
         self.schema = schema
         self.table = table
         self.attribute = attribute
-
-        metadata = self.metadata
+        self.metadata = metadata
 
         self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'udt_name'].to_numpy()[0]
         self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'is_nullable'].to_numpy()[0] == 'YES' else False
@@ -29,12 +27,35 @@ class Attribute:
             return " NOT NULL"
     
     def ddl(self):
+        """Like a toString() method. Outputs a string that's used for specifying the attribute in the DDL. 
+        Example: 
+        Name VARCHAR(20) NOT NULL
+
+        Returns:
+            string: [description]
+        """
         if self.data_type in ["char", "varchar"]:
             return f"{self.attribute} {self.data_type}({self.length}){self.is_nullable()}"
         else:
             return f"{self.attribute} {self.data_type}{self.is_nullable()}"
     
 
+    def getTableSchema(self):
+        return f"{self.schema}.{self.table}"
 
+    def __str__(self):
+        return f"{self.schema}.{self.table}.{self.attribute}"
+
+
+
+class ForeignKey(Attribute):
+    def __init__(self, schema, table, attribute, f_schema, f_table, f_attribute, metadata):
+        super().__init__(schema, table, attribute, metadata)
+        self.f_schema = f_schema
+        self.f_table = f_table
+        self.f_attribute = f_attribute
+
+
+    
 
 
