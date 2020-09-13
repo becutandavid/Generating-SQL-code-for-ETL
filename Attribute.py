@@ -35,9 +35,9 @@ class Attribute:
             string: [description]
         """
         if self.data_type in ["char", "varchar"]:
-            return f"{self.attribute} {self.data_type}({self.length}){self.is_nullable()}"
+            return f"  {self.attribute} {self.data_type}({self.length}){self.is_nullable()}"
         else:
-            return f"{self.attribute} {self.data_type}{self.is_nullable()}"
+            return f"  {self.attribute} {self.data_type}{self.is_nullable()}"
     
 
     def getTableSchema(self):
