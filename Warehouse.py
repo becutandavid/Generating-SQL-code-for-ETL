@@ -57,7 +57,12 @@ class Warehouse:
 if __name__=="__main__":
     warehouse = Warehouse("test warehouse", pd.read_csv("metadata_with_foreign_keys.csv"), pd.read_csv("dimenzii.csv"))
 
-    for i in warehouse.get_dimension("dim_admins").get_foreign_keys():
-        print(i)
+    # for dim in warehouse.dimensions:
+    #     print(warehouse.get_dimension(dim.name).ddl())
+    #     print('\nFK:')
+    #     for i in dim.get_foreign_keys():
+    #         print(i)
+    #     print('\n')
 
-
+    print(warehouse.get_dimension("dim_admins").ddl() + "\n")
+    print(warehouse.get_dimension("dim_admins").dml())

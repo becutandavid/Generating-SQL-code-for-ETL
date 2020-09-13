@@ -45,12 +45,12 @@ class Dimension:
         Returns:
             string: PostgreSQL for creating the dimension
         """
-        sql = [f"CREATE TABLE {self.name}(\nskey serial primary key"]
+        sql = [f"CREATE TABLE {self.name}(\n  skey serial primary key"]
 
         for attribute in self.attributes:
             sql.append(attribute.ddl())
 
-        return ",\n".join(sql)+"\n)"
+        return ",\n".join(sql)+"\n);"
     
     def get_foreign_keys(self):
         """returns a list of all attributes that are foreign keys
@@ -65,4 +65,73 @@ class Dimension:
         
         return fkeys
 
-        
+    def dml(self):
+        """Like a toString() method. When called it prints out the DML for the Dimension in PostgreSQL
+
+        Returns:
+            string: INSERT statements
+        """
+        # sql = string to return
+        sql = [f""]
+
+        # INSERT INTO sql
+        sql_insert = [f"INSERT INTO {self.name}("]
+
+        for attribute in self.attributes:
+            sql_insert.append(attribute.attribute + ", ")
+
+        sql_insert = "".join(sql_insert)
+        sql_insert = sql_insert[:-2]
+        sql.append(sql_insert + ")\n")
+
+
+        # FROM sql
+        table= [f""]
+        for i in self.get_foreign_keys():
+            table.append(str(i))
+        table = "".join(table).split('.')
+        table = table[:-1]
+        table = ".".join(table)
+
+        initials = table.split('.')
+        table_short = initials[0][0] + initials[1][0]
+
+        sql_from = [f"FROM {table} {table_short}"]
+
+        sql_from = "".join(sql_from)
+        sql.append(sql_from + "\n")
+
+
+        # SELECT sql
+        sql_select = [f"SELECT "]
+        for attribute in self.attributes:
+            sql_select.append(table_short + "." + attribute.attribute + ", ")
+
+        sql_select = "".join(sql_select)
+        sql_select = sql_select[:-2]
+        sql.append(sql_select + "\n")
+
+
+        # JOIN sql
+        initials = self.name.split('_')
+        dim_short = initials[0][0] + initials[1][0]
+         
+        fk = [f""]
+        for i in self.get_foreign_keys():
+            fk.append(str(i))
+        fk = "".join(fk).split('.')
+        fk = fk[-1]
+
+        join_sql = [f"LEFT OUTER JOIN {self.name} {dim_short}\n  ON {dim_short}.{fk} = {table_short}.{fk}"]
+
+        join_sql = "".join(join_sql)
+        sql.append(join_sql + "\n")
+
+        # WHERE sql
+        sql_where = [f"WHERE {dim_short}.skey IS NULL"]
+
+        sql_where = "".join(sql_where)
+        sql.append(sql_where + "\n")
+
+
+        return "".join(sql)
