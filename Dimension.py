@@ -81,8 +81,7 @@ class Dimension:
             sql_insert.append(attribute.attribute + ", ")
 
         sql_insert = "".join(sql_insert)
-        sql_insert = sql_insert[:-2]
-        sql.append(sql_insert + ")\n")
+        sql_insert = sql_insert[:-2]        
 
 
         # FROM sql
@@ -97,9 +96,7 @@ class Dimension:
         table_short = initials[0][0] + initials[1][0]
 
         sql_from = [f"FROM {table} {table_short}"]
-
         sql_from = "".join(sql_from)
-        sql.append(sql_from + "\n")
 
 
         # SELECT sql
@@ -109,10 +106,9 @@ class Dimension:
 
         sql_select = "".join(sql_select)
         sql_select = sql_select[:-2]
-        sql.append(sql_select + "\n")
 
 
-        # JOIN sql
+        # LEFT OUTER JOIN sql
         initials = self.name.split('_')
         dim_short = initials[0][0] + initials[1][0]
          
@@ -122,16 +118,20 @@ class Dimension:
         fk = "".join(fk).split('.')
         fk = fk[-1]
 
-        join_sql = [f"LEFT OUTER JOIN {self.name} {dim_short}\n  ON {dim_short}.{fk} = {table_short}.{fk}"]
-
+        join_sql = [f"LEFT OUTER JOIN {self.name} {dim_short} ON {dim_short}.{fk} = {table_short}.{fk}"]
         join_sql = "".join(join_sql)
-        sql.append(join_sql + "\n")
+
 
         # WHERE sql
         sql_where = [f"WHERE {dim_short}.skey IS NULL"]
 
         sql_where = "".join(sql_where)
-        sql.append(sql_where + "\n")
 
+
+        sql.append(sql_insert + ")\n")
+        sql.append(sql_select + "\n")
+        sql.append(sql_from + "\n")
+        sql.append(join_sql + "\n")
+        sql.append(sql_where + "\n")
 
         return "".join(sql)
