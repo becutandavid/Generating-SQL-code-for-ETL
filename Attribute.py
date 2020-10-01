@@ -34,7 +34,7 @@ class Attribute:
         Returns:
             string: [description]
         """
-        if self.data_type in ["char", "varchar"]:
+        if self.data_type in ["nchar", "nvarchar"]:
             return f"  {self.attribute} {self.data_type}({self.length}){self.is_nullable()}"
         else:
             return f"  {self.attribute} {self.data_type}{self.is_nullable()}"

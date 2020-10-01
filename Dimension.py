@@ -128,13 +128,45 @@ class Dimension:
         sql_where = "".join(sql_where)
 
 
-        sql.append(sql_insert + ")\n")
-        sql.append(sql_select + "\n")
-        sql.append(sql_from + "\n")
-        sql.append(join_sql + "\n")
-        sql.append(sql_where + "\n")
+        sql.append("\t" + sql_insert + ")\n")
+        sql.append("\t" + sql_select + "\n")
+        sql.append("\t" + sql_from + "\n")
+        sql.append("\t" + join_sql + "\n")
+        sql.append("\t" + sql_where + "\n\n")
 
         return "".join(sql)
+
+    def sp_performETL(self):
+        # sql = string to return
+        sql = [f""]
+
+
+        # CREATE PROCEDURE sql
+        name = self.name.split('_')[1].capitalize()
+        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}\n"]
+        sql_cp = "".join(sql_cp)
+
+
+        # BEGIN sql
+        sql_begin = [f"LANGUAGE PLPGSQL\nAS $$\nBEGIN\n"]
+        sql_begin = "".join(sql_begin)
+
+
+        # INSERT sql
+        sql_insert = self.dml()
+
+
+        # END sql
+        sql_end = [f"END; $$\n"]
+        sql_end = "".join(sql_end)
+
+        sql.append(sql_cp)
+        sql.append(sql_begin)
+        sql.append(sql_insert)
+        sql.append(sql_end)
+        sql = "".join(sql)
+        print(sql)
+        
     
     def get_table_alias(self, table_name):
         if table_name.startswith('dim_'):
