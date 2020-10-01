@@ -5,6 +5,7 @@ from Attribute import Attribute, ForeignKey
 
 class Dimension:
     def __init__(self, name, metadata, dimensions):
+        self.global_counter = 1
         self.name = name
         self.attributes = []
         self.dimensions = dimensions
@@ -92,8 +93,7 @@ class Dimension:
         table = table[:-1]
         table = ".".join(table)
 
-        initials = table.split('.')
-        table_short = initials[0][0] + initials[1][0]
+        table_short = self.get_table_alias(table)
 
         sql_from = [f"FROM {table} {table_short}"]
         sql_from = "".join(sql_from)
@@ -110,7 +110,7 @@ class Dimension:
 
         # LEFT OUTER JOIN sql
         initials = self.name.split('_')
-        dim_short = initials[0][0] + initials[1][0]
+        dim_short = self.get_table_alias(self.name)
          
         fk = [f""]
         for i in self.get_foreign_keys():
@@ -135,3 +135,20 @@ class Dimension:
         sql.append(sql_where + "\n")
 
         return "".join(sql)
+    
+    def get_table_alias(self, table_name):
+        if table_name.startswith('dim_'):
+            table_alias = 'd'
+            table_name = table_name[4:]
+        else:
+            table_alias = ''
+            
+        names = table_name.split('.')
+        for n in names:
+            table_alias += n[0]
+          
+        table_alias += str(self.global_counter)
+        self.global_counter += 1
+
+        return table_alias
+  
