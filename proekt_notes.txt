@@ -11,10 +11,3 @@ proceduri za update i inkrementalno polnenje na fakt tabeli, dimenzioni tabeli
 generiranje na log tabeli
 
 
-------------------
-
-load date / modified date za scd type 1
-
-
-information schema -- metadata table vo ms sql
-

@@ -5,7 +5,6 @@ from Attribute import Attribute, ForeignKey
 
 class Dimension:
     def __init__(self, name, metadata, dimensions):
-        self.global_counter = 1
         self.name = name
         self.attributes = []
         self.dimensions = dimensions
@@ -39,6 +38,9 @@ class Dimension:
         self.attributes.append(attr)
 
         return
+
+    def _get_attributes(self, instanceName):
+        return map(lambda x: instanceName+'.'+x, self.attributes)
 
     def ddl(self):
         """Like a toString() method. When called it prints out the DDL for creating the Dimension in PostgreSQL
@@ -82,7 +84,7 @@ class Dimension:
             sql_insert.append(attribute.attribute + ", ")
 
         sql_insert = "".join(sql_insert)
-        sql_insert = sql_insert[:-2]        
+        sql_insert = sql_insert[:-2]
 
 
         # FROM sql
@@ -96,7 +98,9 @@ class Dimension:
         table_short = self.get_table_alias(table)
 
         sql_from = [f"FROM {table} {table_short}"]
+
         sql_from = "".join(sql_from)
+        sql.append(sql_from + "\n")
 
 
         # SELECT sql
@@ -106,6 +110,7 @@ class Dimension:
 
         sql_select = "".join(sql_select)
         sql_select = sql_select[:-2]
+        sql.append(sql_select + "\n")
 
 
         # LEFT OUTER JOIN sql
@@ -126,6 +131,7 @@ class Dimension:
         sql_where = [f"WHERE {dim_short}.skey IS NULL"]
 
         sql_where = "".join(sql_where)
+        sql.append(sql_where + "\n")
 
 
         sql.append("\t" + sql_insert + ")\n")
@@ -166,21 +172,33 @@ class Dimension:
         sql.append(sql_end)
         sql = "".join(sql)
         print(sql)
-        
-    
+
+
     def get_table_alias(self, table_name):
         if table_name.startswith('dim_'):
             table_alias = 'd'
             table_name = table_name[4:]
         else:
             table_alias = ''
-            
+
         names = table_name.split('.')
         for n in names:
             table_alias += n[0]
-          
+
         table_alias += str(self.global_counter)
         self.global_counter += 1
 
         return table_alias
-  
+
+
+class DimensionSCD1(Dimension):
+    def __init__(self, name, metadata, dimensions):
+        super().__init__()
+
+    def dml(self):
+        selects = []
+        joins = []
+        #from query
+        for fkey in self.get_foreign_keys():
+            joins.append(fkey.f_table)
+            selects.append("a")
