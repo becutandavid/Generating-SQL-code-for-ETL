@@ -51,7 +51,7 @@ class Dimension:
         for attribute in self.attributes:
             sql.append(attribute.ddl())
 
-        return ",\n".join(sql)+"\n);"
+        print(",\n".join(sql)+"\n);\n")
     
     def get_foreign_keys(self):
         """returns a list of all attributes that are foreign keys
@@ -143,12 +143,12 @@ class Dimension:
 
         # CREATE PROCEDURE sql
         name = self.name.split('_')[1].capitalize()
-        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}\n"]
+        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}"]
         sql_cp = "".join(sql_cp)
 
 
         # BEGIN sql
-        sql_begin = [f"LANGUAGE PLPGSQL\nAS $$\nBEGIN\n"]
+        sql_begin = [f"LANGUAGE PLPGSQL\nAS $$\nBEGIN"]
         sql_begin = "".join(sql_begin)
 
 
@@ -156,14 +156,47 @@ class Dimension:
         sql_insert = self.dml()
 
 
+        # SCD 1 sql
+        sql_scd1 = [f""]
+
+        sql_scd1_update = [f"UPDATE {self.name}"]
+        sql_scd1_update = "".join(sql_scd1_update)
+
+        sql_scd1_set = [f"SET\n"]
+
+        for a in self.attributes:
+            sql_scd1_set.append("\t\t" + a.attribute + " = " + "JOVAN" + ",\n")
+
+        sql_scd1_set = "".join(sql_scd1_set)
+        sql_scd1_set = sql_scd1_set[:-2]
+
+        sql_scd1_from = [f"FROM operativnaBaza oB"]
+        sql_scd1_from = "".join(sql_scd1_from)
+
+        sql_scd1_where = [f"WHERE "]
+        for a in self.attributes:
+            sql_scd1_where.append(a.attribute + " = pero AND ")
+
+        sql_scd1_where = "".join(sql_scd1_where)
+
+        sql_scd1.append("\t" + sql_scd1_update + "\n")
+        sql_scd1.append("\t" + sql_scd1_set + "\n")
+        sql_scd1.append("\t" + sql_scd1_from + "\n")
+        sql_scd1.append("\t" + sql_scd1_where + "\n")
+
+        sql_scd1 = "".join(sql_scd1)
+
+
+
         # END sql
         sql_end = [f"END; $$\n"]
         sql_end = "".join(sql_end)
 
-        sql.append(sql_cp)
-        sql.append(sql_begin)
-        sql.append(sql_insert)
-        sql.append(sql_end)
+        sql.append(sql_cp + "\n")
+        sql.append(sql_begin + "\n")
+        sql.append(sql_insert + "\n")
+        sql.append(sql_scd1 + "\n")
+        sql.append(sql_end + "\n")
         sql = "".join(sql)
         print(sql)
         

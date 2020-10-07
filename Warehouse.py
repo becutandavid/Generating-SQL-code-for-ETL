@@ -69,6 +69,7 @@ if __name__=="__main__":
 
     # print(warehouse.get_dimension("dim_admins").dml())
     # print(warehouse.get_dimension("dim_students").dml())
+    warehouse.get_dimension("dim_admins").ddl()
     warehouse.get_dimension("dim_admins").sp_performETL()
 
     
