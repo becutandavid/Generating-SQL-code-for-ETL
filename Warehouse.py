@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from Attribute import Attribute
-from Dimension import Dimension
+from Dimension import Dimension, DimensionSCD1, DimensionSCD2
 
 
 
@@ -24,7 +24,7 @@ class Warehouse:
 
         dimension_Names = list(set(specifications.loc[:, 'dim_name'].to_numpy()))
         for dim in dimension_Names:
-            self.add_dimension(dim)
+            self.add_dimension_scd2(dim)
 
     def add_dimension(self, name):
         """Adds a dimension to the warehouse. The dimensions from the specifications file are added in the warehouse constructor, this is just the method used for that.
@@ -35,6 +35,14 @@ class Warehouse:
         dimension = Dimension(name, self.metadata, self.specifications)
         self.dimensions.append(dimension)
         return
+
+    def add_dimension_scd1(self, name):
+        dimension = DimensionSCD1(name, self.metadata, self.specifications)
+        self.dimensions.append(dimension)
+
+    def add_dimension_scd2(self, name):
+        dimension = DimensionSCD2(name, self.metadata, self.specifications)
+        self.dimensions.append(dimension)
 
     def get_dimension(self, name):
         """finds a dimension in the warehouse by name
@@ -50,8 +58,6 @@ class Warehouse:
                 return dim
         
         return None
-        
-
 
 
 if __name__=="__main__":
@@ -69,7 +75,11 @@ if __name__=="__main__":
 
     # print(warehouse.get_dimension("dim_admins").dml())
     # print(warehouse.get_dimension("dim_students").dml())
-    warehouse.get_dimension("dim_admins").ddl()
-    warehouse.get_dimension("dim_admins").sp_performETL()
+    # warehouse.get_dimension("dim_admins").ddl()
+    # print('='*20)
+    # print(warehouse.get_dimension("dim_admins").dml())
 
-    
+    # warehouse.get_dimension("dim_admins").sp_performETL()
+    # print(warehouse.get_dimension("dim_students").ddl())
+    # print('='*20)
+    print(warehouse.get_dimension("dim_students").sp_performETL())

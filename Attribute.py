@@ -3,15 +3,16 @@ import pandas as pd
 import math
 
 class Attribute:
-    def __init__(self, schema, table, attribute, metadata):
+    def __init__(self, schema, table, attribute, metadata=None):
         self.schema = schema
         self.table = table
         self.attribute = attribute
         self.metadata = metadata
 
-        self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'udt_name'].to_numpy()[0]
-        self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'is_nullable'].to_numpy()[0] == 'YES' else False
-        self.length = Attribute.nan_convert(metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'character_maximum_length'].to_numpy()[0])
+        if metadata is not None:
+            self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'udt_name'].to_numpy()[0]
+            self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'is_nullable'].to_numpy()[0] == 'YES' else False
+            self.length = Attribute.nan_convert(metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'character_maximum_length'].to_numpy()[0])
 
     @staticmethod
     def nan_convert(x):
@@ -46,6 +47,11 @@ class Attribute:
     def __str__(self):
         return f"{self.schema}.{self.table}.{self.attribute}"
 
+    def set_data_type(self, type, nullable=True, length=None):
+        self.data_type = type
+        self.nullable = nullable
+        self.length = length
+
 
 
 class ForeignKey(Attribute):
@@ -54,3 +60,11 @@ class ForeignKey(Attribute):
         self.f_schema = f_schema
         self.f_table = f_table
         self.f_attribute = f_attribute
+
+class SCDAttribute(Attribute):
+    def __init__(self, schema, table, attribute, metadata=None, default='NOW()'):
+        super().__init__(schema, table, attribute, None)
+        self.default = default
+
+    def ddl(self):
+        return super().ddl() + f' default({self.default})'

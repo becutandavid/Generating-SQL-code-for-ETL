@@ -10,4 +10,12 @@ tldr za postoecko skladiste
 proceduri za update i inkrementalno polnenje na fakt tabeli, dimenzioni tabeli
 generiranje na log tabeli
 
+-----------------------------------
+
+07.10.2020 notes
+
+- log tabela
+- dodadi kolona vo dimenzii.csv za da se znae kako sakame da ja implementirame dimenzijata (scd1, scd2, nothing)
+- API za postgresql
+- save output to file
 
