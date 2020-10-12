@@ -173,10 +173,10 @@ class DimensionSCD1(Dimension):
         out.append(self.dml())
 
         # UPDATE
-        select_string = []
+        set_string = []
         for attr in self.attributes:
-            select_string.append(f'{attr.schema}.{attr.table}.{attr.attribute}')
-        select_string = f'SELECT {", ".join(select_string)}'
+            set_string.append(f'{self.name}.{attr.attribute}={attr.schema}.{attr.table}.{attr.attribute}')
+        set_string = f'SET {", ".join(set_string)}'
 
 
         from_string = [f'FROM']
@@ -200,12 +200,12 @@ class DimensionSCD1(Dimension):
             if idx != self.attr_id:
                 where_string.append(f'{attr.schema}.{attr.table}.{attr.attribute} != {self.name}.{attr.attribute}')
 
-        where_string = f'{self.attributes[self.attr_id].schema}.{self.attributes[self.attr_id].table}.' \
+        where_string = f'WHERE {self.attributes[self.attr_id].schema}.{self.attributes[self.attr_id].table}.' \
                        f'{self.attributes[self.attr_id].attribute} = {self.name}.{self.attributes[self.attr_id].attribute}' \
                        f' and' + ' (' + ' or '.join(where_string) + ')'
 
 
-        update_string = f'UPDATE {self.name}\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
+        update_string = f'UPDATE {self.name}\n' + set_string + '\n' + from_string + '\n' + where_string + '\n'
         out.append(update_string)
         out.append('END $$;')
 
