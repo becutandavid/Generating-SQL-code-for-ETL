@@ -86,7 +86,7 @@ class Dimension:
 
         from_string = ' '.join(from_string)
 
-        where_string = f'WHERE {self.name}.skey is NULL'
+        where_string = f'WHERE {self.name}.skey is NULL;'
 
         return f'INSERT INTO {self.name}({",".join([attr.attribute for attr in self.attributes if not isinstance(attr, SCDAttribute)])})\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
 
@@ -202,7 +202,7 @@ class DimensionSCD1(Dimension):
 
         where_string = f'WHERE {self.attributes[self.attr_id].schema}.{self.attributes[self.attr_id].table}.' \
                        f'{self.attributes[self.attr_id].attribute} = {self.name}.{self.attributes[self.attr_id].attribute}' \
-                       f' and' + ' (' + ' or '.join(where_string) + ')'
+                       f' and' + ' (' + ' or '.join(where_string) + ');'
 
 
         update_string = f'UPDATE {self.name}\n' + set_string + '\n' + from_string + '\n' + where_string + '\n'
