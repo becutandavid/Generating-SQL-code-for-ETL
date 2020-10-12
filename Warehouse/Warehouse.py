@@ -35,7 +35,6 @@ class Warehouse:
         """
         self.name = name
         self.dimensions = []
-        self.fact_tables = []
 
         if metadata is None:
             self.metadata = self._get_metadata()
