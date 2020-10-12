@@ -325,7 +325,7 @@ class DimensionSCD2(Dimension):
 
         out.append("\n".join(add_updated_rows))
 
-        out.append('DROP TABLE scd2\nEND $$;\n\n')
+        out.append('DROP TABLE scd2;\nEND $$;\n\n')
 
         return "\n".join(out)
 

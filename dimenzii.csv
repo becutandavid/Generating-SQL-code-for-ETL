@@ -8,3 +8,17 @@ dim_students,platforma,users,lastname
 dim_course,platforma,courses,id
 dim_course,platforma,courses,name
 dim_course,platforma,courses,description
+dim_course,platforma,prices,price
+dim_course,platforma,courses,id
+dim_course,platforma,courses,name
+dim_course,platforma,courses,description
+dim_course,platforma,prices,price
+dim_course,platforma,prices,courseid
+dim_instructor,platforma,instructors,id
+dim_instructor,platforma,users,firstname
+dim_instructor,platforma,users,lastname
+dim_instructor,platforma,users,sex
+dim_instructor,platforma,users,email
+dim_instructor,platforma,instructors,age
+dim_instructor,platforma,instructors,country
+dim_instructor,platforma,instructors,userid
