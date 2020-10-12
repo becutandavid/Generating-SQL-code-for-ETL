@@ -86,9 +86,9 @@ class Dimension:
 
         from_string = ' '.join(from_string)
 
-        where_string = f'WHERE {self.attributes[self.attr_id].schema}.{self.attributes[self.attr_id].table}.skey is NULL'
+        where_string = f'WHERE {self.name}.skey is NULL'
 
-        return f'INSERT INTO {self.name}\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
+        return f'INSERT INTO {self.name}({",".join([attr.attribute for attr in self.attributes if not isinstance(attr, SCDAttribute)])})\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
 
 
     def get_table_names(self):
@@ -121,7 +121,7 @@ class Dimension:
 
         # CREATE PROCEDURE sql
         name = self.name.split('_')[1].capitalize()
-        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}"]
+        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}()"]
         sql_cp = "".join(sql_cp)
 
 
@@ -134,7 +134,7 @@ class Dimension:
         sql_insert = self.dml()
 
         # END sql
-        sql_end = [f"END; $$\n"]
+        sql_end = [f"END $$;\n"]
         sql_end = "".join(sql_end)
 
         sql.append(sql_cp + "\n")
@@ -167,7 +167,7 @@ class DimensionSCD1(Dimension):
         super().__init__(name, metadata, dimensions)
 
     def sp_performETL(self):
-        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nLANGUAGE PLPGSQL\nAS $$\nBEGIN']
+        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN']
 
         # insert izraz
         out.append(self.dml())
@@ -207,7 +207,7 @@ class DimensionSCD1(Dimension):
 
         update_string = f'UPDATE {self.name}\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
         out.append(update_string)
-        out.append('END')
+        out.append('END $$;')
 
 
 
@@ -222,7 +222,7 @@ class DimensionSCD2(Dimension):
 
     def _add_scd_columns(self):
         start = SCDAttribute(None, self.name, 'start_date')
-        end = SCDAttribute(None, self.name, 'end_date', default='"9999-12-31"')
+        end = SCDAttribute(None, self.name, 'end_date', default="'9999-12-31'")
         start.set_data_type('timestamp', False)
         end.set_data_type('timestamp', True)
 
@@ -254,18 +254,19 @@ class DimensionSCD2(Dimension):
 
         from_string = ' '.join(from_string)
 
-        where_string = f'WHERE {self.attributes[self.attr_id].schema}.{self.attributes[self.attr_id].table}.skey is NULL'
+        where_string = f'WHERE {self.name}.skey is NULL;'
 
-        return f'INSERT INTO {self.name}\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
+        return f'INSERT INTO {self.name}({",".join([attr.attribute for attr in self.attributes if not isinstance(attr, SCDAttribute)])})\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
 
     def sp_performETL(self):
-        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
+        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
 
         # insert izraz
         out.append(self.dml())
         out.append('-- find modified')
         # find modified
-        select_modified = [f'SELECT {self.name}.skey']
+
+        select_modified = [f'CREATE TEMP TABLE scd2 AS\nSELECT {self.name}.skey']
         for attr in self.attributes:
             if not isinstance(attr, SCDAttribute):
                 select_modified.append(f'{attr.schema}.{attr.table}.{attr.attribute}')
@@ -298,16 +299,16 @@ class DimensionSCD2(Dimension):
         from_modified += ' and (' + ' or '.join(from_and) + ')\n'
 
         # where
-        where_modified = f'WHERE {self.name}.end_date = "9999-12-31"\n'
+        where_modified = f"WHERE {self.name}.end_date = '9999-12-31';\n"
 
-        out.append(select_modified + 'INTO #scd2\n' + from_modified + where_modified)
+        out.append(select_modified + from_modified + where_modified)
 
         out.append('-- update table')
         # update table (scd2)
         update_modified = f'UPDATE {self.name}\n'\
                            f'SET end_date=NOW()\n'\
-                           f'FROM #scd2\n'\
-                           f'WHERE #scd2.skey = {self.name}.skey\n'
+                           f'FROM scd2\n'\
+                           f'WHERE scd2.skey = {self.name}.skey;\n'
         out.append(update_modified)
 
         out.append('-- add updated rows')
@@ -320,11 +321,11 @@ class DimensionSCD2(Dimension):
 
         add_updated_rows.append(f'INSERT INTO {self.name}({", ".join(update_rows_attrs)})')
         add_updated_rows.append(f'SELECT {", ".join(update_rows_attrs)}\n'
-                                f'FROM #scd2\n')
+                                f'FROM scd2\n')
 
         out.append("\n".join(add_updated_rows))
 
-        out.append('END; $$\n\n')
+        out.append('END $$;\n\n')
 
         return "\n".join(out)
 

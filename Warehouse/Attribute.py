@@ -67,4 +67,4 @@ class SCDAttribute(Attribute):
         self.default = default
 
     def ddl(self):
-        return super().ddl() + f' default({self.default})'
+        return super().ddl() + f' default {self.default}'
