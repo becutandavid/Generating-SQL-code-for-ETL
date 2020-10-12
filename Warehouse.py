@@ -66,26 +66,7 @@ class Warehouse:
 if __name__=="__main__":
     warehouse = Warehouse("test warehouse", pd.read_csv("metadata_with_foreign_keys.csv"), pd.read_csv("dimenzii.csv"))
 
-    # for dim in warehouse.dimensions:
-    #     print(warehouse.get_dimension(dim.name).ddl())
-    #     print('\nFK:')
-    #     for i in dim.get_foreign_keys():
-    #         print(i)
-    #     print('\n')
-
-    # print(warehouse.get_dimension("dim_admins").ddl() + "\n")
-    # print(warehouse.get_dimension("dim_students").ddl() + "\n")
-
-    # print(warehouse.get_dimension("dim_admins").dml())
-    # print(warehouse.get_dimension("dim_students").dml())
-    # warehouse.get_dimension("dim_admins").ddl()
-    # print('='*20)
-    # print(warehouse.get_dimension("dim_admins").dml())
-
-    # warehouse.get_dimension("dim_admins").sp_performETL()
-    # print(warehouse.get_dimension("dim_students").ddl())
-    # print('='*20)
-    # print(warehouse.get_dimension("dim_students").sp_performETL())
-
-    for dim in warehouse.dimension_names():
-      print(warehouse.get_dimension(dim).sp_performETL())
+    with open('outputETL.sql', 'w') as file:
+        for dim in warehouse.dimension_names():
+            file.write(warehouse.get_dimension(dim).sp_performETL())
+    file.close()
