@@ -255,7 +255,7 @@ class DimensionSCD2(Dimension):
         return f'INSERT INTO {self.name}\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
 
     def sp_performETL(self):
-        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nLANGUAGE PLPGSQL\nAS $$\nBEGIN']
+        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
 
         # insert izraz
         out.append(self.dml())
@@ -295,7 +295,7 @@ class DimensionSCD2(Dimension):
         # where
         where_modified = f'WHERE {self.name}.end_date = "9999-12-31"\n'
 
-        out.append(select_modified + 'into #scd2\n' + from_modified + where_modified)
+        out.append(select_modified + 'INTO #scd2\n' + from_modified + where_modified)
 
         out.append('-- update table')
         # update table (scd2)
@@ -315,11 +315,11 @@ class DimensionSCD2(Dimension):
 
         add_updated_rows.append(f'INSERT INTO {self.name}({", ".join(update_rows_attrs)})')
         add_updated_rows.append(f'SELECT {", ".join(update_rows_attrs)}\n'
-                                f'FROM #scd2')
+                                f'FROM #scd2\n')
 
         out.append("\n".join(add_updated_rows))
 
-        out.append('END')
+        out.append('END; $$\n\n')
 
         return "\n".join(out)
 

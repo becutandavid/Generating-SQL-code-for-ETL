@@ -22,9 +22,12 @@ class Warehouse:
         self.metadata = metadata
         self.specifications = specifications
 
-        dimension_Names = list(set(specifications.loc[:, 'dim_name'].to_numpy()))
+        dimension_Names = self.dimension_names()
         for dim in dimension_Names:
             self.add_dimension_scd2(dim)
+
+    def dimension_names(self):
+        return list(set(self.specifications.loc[:, 'dim_name'].to_numpy()))
 
     def add_dimension(self, name):
         """Adds a dimension to the warehouse. The dimensions from the specifications file are added in the warehouse constructor, this is just the method used for that.
@@ -82,4 +85,7 @@ if __name__=="__main__":
     # warehouse.get_dimension("dim_admins").sp_performETL()
     # print(warehouse.get_dimension("dim_students").ddl())
     # print('='*20)
-    print(warehouse.get_dimension("dim_students").sp_performETL())
+    # print(warehouse.get_dimension("dim_students").sp_performETL())
+
+    for dim in warehouse.dimension_names():
+      print(warehouse.get_dimension(dim).sp_performETL())
