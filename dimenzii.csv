@@ -5,3 +5,6 @@ dim_admins,platforma,users,lastname
 dim_students,platforma,students,userid
 dim_students,platforma,users,firstname
 dim_students,platforma,users,lastname
+dim_course,platforma,courses,id
+dim_course,platforma,courses,name
+dim_course,platforma,courses,description

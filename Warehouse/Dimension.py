@@ -1,9 +1,8 @@
 from typing import List
 
-import numpy as np
 import pandas as pd
 
-from Attribute import Attribute, ForeignKey, SCDAttribute
+from Warehouse.Attribute import Attribute, ForeignKey, SCDAttribute
 
 class Dimension:
     def __init__(self, name, metadata, dimensions):
@@ -61,7 +60,7 @@ class Dimension:
         for attribute in self.attributes:
             sql.append(attribute.ddl())
 
-        print(",\n".join(sql)+"\n);\n")
+        return ",\n".join(sql)+"\n);\n"
 
     def dml(self):
         select_string = []
@@ -79,6 +78,7 @@ class Dimension:
 
         for attr in self.attributes:
             if f'{attr.schema}.{attr.table}' not in tables:
+                tables.add(f'{attr.schema}.{attr.table}')
                 from_string.append(f'{attr.schema}.{attr.table}')
 
         from_string.append(f'LEFT OUTER JOIN {self.name} on '
@@ -111,6 +111,8 @@ class Dimension:
         
         return fkeys
 
+    def get_etl_name(self):
+        return f"sp_performETL_{self.name.split('_')[1].capitalize()}"
 
     def sp_performETL(self):
         # sql = string to return
@@ -186,6 +188,7 @@ class DimensionSCD1(Dimension):
 
         for attr in self.attributes:
             if f'{attr.schema}.{attr.table}' not in tables:
+                tables.add(f'{attr.schema}.{attr.table}')
                 from_string.append(f'{attr.schema}.{attr.table}')
 
 
@@ -243,6 +246,7 @@ class DimensionSCD2(Dimension):
 
         for attr in self.attributes:
             if f'{attr.schema}.{attr.table}' not in tables and not isinstance(attr, SCDAttribute):
+                tables.add(f'{attr.schema}.{attr.table}')
                 from_string.append(f'{attr.schema}.{attr.table}')
 
         from_string.append(f'LEFT OUTER JOIN {self.name} on '
@@ -278,6 +282,7 @@ class DimensionSCD2(Dimension):
 
         for attr in self.attributes:
             if f'{attr.schema}.{attr.table}' not in tables and not isinstance(attr, SCDAttribute):
+                tables.add(f'{attr.schema}.{attr.table}')
                 from_modified.append(f'{attr.schema}.{attr.table}')
 
         from_modified.append(f'INNER JOIN {self.name} on '
