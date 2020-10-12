@@ -52,7 +52,7 @@ git clone https://github.com/becutandavid/Generating-SQL-code-for-ETL
 
 David Galevski - davidgalevski@gmail.com
 
-Jovan Velkovski - velkovskijovan2@gmail.com
+Jovan Velkovski - jovanvelkovski2@gmail.com
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
