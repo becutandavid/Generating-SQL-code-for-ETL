@@ -321,11 +321,11 @@ class DimensionSCD2(Dimension):
 
         add_updated_rows.append(f'INSERT INTO {self.name}({", ".join(update_rows_attrs)})')
         add_updated_rows.append(f'SELECT {", ".join(update_rows_attrs)}\n'
-                                f'FROM scd2\n')
+                                f'FROM scd2;\n')
 
         out.append("\n".join(add_updated_rows))
 
-        out.append('END $$;\n\n')
+        out.append('DROP TABLE scd2\nEND $$;\n\n')
 
         return "\n".join(out)
 
