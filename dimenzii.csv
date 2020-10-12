@@ -9,10 +9,6 @@ dim_course,platforma,courses,id
 dim_course,platforma,courses,name
 dim_course,platforma,courses,description
 dim_course,platforma,prices,price
-dim_course,platforma,courses,id
-dim_course,platforma,courses,name
-dim_course,platforma,courses,description
-dim_course,platforma,prices,price
 dim_course,platforma,prices,courseid
 dim_instructor,platforma,instructors,id
 dim_instructor,platforma,users,firstname
