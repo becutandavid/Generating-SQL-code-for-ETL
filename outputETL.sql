@@ -121,4 +121,6 @@ FROM #scd2
 
 END; $$
 
-CALL sp_performETL_AdminsCALL sp_performETL_CourseCALL sp_performETL_Students
+CALL sp_performETL_Admins;
+CALL sp_performETL_Course;
+CALL sp_performETL_Students;

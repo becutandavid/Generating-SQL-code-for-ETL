@@ -41,7 +41,7 @@ class Warehouse:
             self.metadata = self._get_metadata()
 
         else:
-            self.metadata = metadata
+            self.metadata = pd.read_csv(metadata)
         self.specifications = pd.read_csv(specifications)
 
         dimension_Names = self.dimension_names()
@@ -135,7 +135,7 @@ class Warehouse:
                 file.write(self.get_dimension(dim).sp_performETL())
 
             for dim in self.dimensions:
-                file.write(f'CALL {dim.get_etl_name()}')
+                file.write(f'CALL {dim.get_etl_name()};\n')
         file.close()
 
     def etl(self):
