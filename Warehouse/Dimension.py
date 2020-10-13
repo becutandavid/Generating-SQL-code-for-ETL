@@ -5,18 +5,18 @@ import pandas as pd
 from Warehouse.Attribute import Attribute, ForeignKey, SCDAttribute
 
 class Dimension:
-    def __init__(self, name, metadata, dimensions):
+    def __init__(self, name, metadata, dimensions, language="POSTGRES"):
         self.name = name
         self.attributes = []
         self.dimensions = dimensions
         self.metadata = metadata
         self.attr_id = 0
-
+        self.language = language
         self.global_counter = 0
 
         for row in dimensions[dimensions["dim_name"]==self.name].to_numpy():
             self.add_attribute(row[1],row[2],row[3])
-            if row[3].endswith('id'):
+            if row[3].lower().endswith('id'):
                 self.attr_id = len(self.attributes)-1
 
 
@@ -55,7 +55,10 @@ class Dimension:
         Returns:
             string: PostgreSQL for creating the dimension
         """
-        sql = [f"CREATE TABLE {self.name}(\n  skey serial primary key"]
+        if self.language == 'POSTGRES':
+            sql = [f"CREATE TABLE {self.name}(\n  skey serial primary key"]
+        elif self.language == 'MSSQL':
+            sql = [f"CREATE TABLE {self.name}(\n  skey int identity(1,1) primary key"]
 
         for attribute in self.attributes:
             sql.append(attribute.ddl())
@@ -114,37 +117,6 @@ class Dimension:
     def get_etl_name(self):
         return f"sp_performETL_{self.name.split('_')[1].capitalize()}"
 
-    def sp_performETL(self):
-        # sql = string to return
-        sql = [f""]
-
-
-        # CREATE PROCEDURE sql
-        name = self.name.split('_')[1].capitalize()
-        sql_cp = [f"CREATE OR REPLACE PROCEDURE sp_performETL_{name}()"]
-        sql_cp = "".join(sql_cp)
-
-
-        # BEGIN sql
-        sql_begin = [f"LANGUAGE PLPGSQL\nAS $$\nBEGIN"]
-        sql_begin = "".join(sql_begin)
-
-
-        # INSERT sql
-        sql_insert = self.dml()
-
-        # END sql
-        sql_end = [f"END $$;\n"]
-        sql_end = "".join(sql_end)
-
-        sql.append(sql_cp + "\n")
-        sql.append(sql_begin + "\n")
-        sql.append(sql_insert + "\n")
-        sql.append(sql_end + "\n")
-        sql = "".join(sql)
-        print(sql)
-
-
     def get_table_alias(self, table_name):
         if table_name.startswith('dim_'):
             table_alias = 'd'
@@ -163,12 +135,14 @@ class Dimension:
 
 
 class DimensionSCD1(Dimension):
-    def __init__(self, name, metadata, dimensions):
-        super().__init__(name, metadata, dimensions)
+    def __init__(self, name, metadata, dimensions, language):
+        super().__init__(name, metadata, dimensions, language)
 
     def sp_performETL(self):
-        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN']
-
+        if self.language == 'POSTGRES':
+            out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
+        elif self.language == 'MSSQL':
+            out = [f'CREATE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nAS\nBEGIN\n']
         # insert izraz
         out.append(self.dml())
 
@@ -207,7 +181,11 @@ class DimensionSCD1(Dimension):
 
         update_string = f'UPDATE {self.name}\n' + set_string + '\n' + from_string + '\n' + where_string + '\n'
         out.append(update_string)
-        out.append('END $$;')
+
+        if self.language == 'POSTGRES':
+            out.append('END $$;')
+        elif self.language == "MSSQL":
+            out.append('END;\n\n')
 
 
 
@@ -216,12 +194,15 @@ class DimensionSCD1(Dimension):
 
 class DimensionSCD2(Dimension):
 
-    def __init__(self, name, metadata, dimensions):
-        super().__init__(name, metadata, dimensions)
+    def __init__(self, name, metadata, dimensions, language):
+        super().__init__(name, metadata, dimensions, language)
         self._add_scd_columns()
 
     def _add_scd_columns(self):
-        start = SCDAttribute(None, self.name, 'start_date')
+        if self.language == 'POSTGRES':
+            start = SCDAttribute(None, self.name, 'start_date')
+        else:
+            start = SCDAttribute(None, self.name, 'start_date', default='getdate()')
         end = SCDAttribute(None, self.name, 'end_date', default="'9999-12-31'")
         start.set_data_type('timestamp', False)
         end.set_data_type('timestamp', True)
@@ -259,19 +240,29 @@ class DimensionSCD2(Dimension):
         return f'INSERT INTO {self.name}({",".join([attr.attribute for attr in self.attributes if not isinstance(attr, SCDAttribute)])})\n' + select_string + '\n' + from_string + '\n' + where_string + '\n'
 
     def sp_performETL(self):
-        out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
+        if self.language == 'POSTGRES':
+            out = [f'CREATE OR REPLACE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}()\nLANGUAGE PLPGSQL\nAS $$\nBEGIN\n']
+        elif self.language == 'MSSQL':
+            out = [f'CREATE PROCEDURE sp_performETL_{self.name.split("_")[1].capitalize()}\nAS\nBEGIN\n']
 
         # insert izraz
         out.append(self.dml())
         out.append('-- find modified')
         # find modified
 
-        select_modified = [f'CREATE TEMP TABLE scd2 AS\nSELECT {self.name}.skey']
+        if self.language == 'POSTGRES':
+            select_modified = [f'CREATE TEMP TABLE scd2 AS\nSELECT {self.name}.skey']
+        else:
+            select_modified = [f'SELECT {self.name}.skey']
+
         for attr in self.attributes:
             if not isinstance(attr, SCDAttribute):
                 select_modified.append(f'{attr.schema}.{attr.table}.{attr.attribute}')
 
         select_modified = ", ".join(select_modified) + '\n'
+
+        if self.language == 'MSSQL':
+            select_modified += 'INTO scd2\n'
 
         # from izraz
         from_modified = [f'FROM']
@@ -325,7 +316,10 @@ class DimensionSCD2(Dimension):
 
         out.append("\n".join(add_updated_rows))
 
-        out.append('DROP TABLE scd2;\nEND $$;\n\n')
+        if self.language == 'POSTGRES':
+            out.append('DROP TABLE scd2;\nEND $$;\n\n')
+        elif self.language == "MSSQL":
+            out.append('END;\n\n')
 
         return "\n".join(out)
 

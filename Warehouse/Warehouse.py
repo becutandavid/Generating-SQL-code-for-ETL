@@ -25,7 +25,7 @@ def config(filename='database.ini', section='postgresql'):
 
 class Warehouse:
 
-    def __init__(self, name, metadata=None, specifications=None):
+    def __init__(self, name, metadata=None, specifications=None, language='POSTGRES'):
         """Warehouse constructor
 
         Args:
@@ -35,6 +35,7 @@ class Warehouse:
         """
         self.name = name
         self.dimensions = []
+        self.language=language
 
         if metadata is None:
             self.metadata = self._get_metadata()
@@ -45,7 +46,7 @@ class Warehouse:
 
         dimension_Names = self.dimension_names()
         for dim in dimension_Names:
-            self.add_dimension_scd2(dim)
+            self.add_dimension_scd1(dim)
 
     def _connect_to_db(self):
         try:
@@ -98,16 +99,16 @@ class Warehouse:
         Args:
             name (string): name of the dimension
         """
-        dimension = Dimension(name, self.metadata, self.specifications)
+        dimension = Dimension(name, self.metadata, self.specifications, self.language)
         self.dimensions.append(dimension)
         return
 
     def add_dimension_scd1(self, name):
-        dimension = DimensionSCD1(name, self.metadata, self.specifications)
+        dimension = DimensionSCD1(name, self.metadata, self.specifications, self.language)
         self.dimensions.append(dimension)
 
     def add_dimension_scd2(self, name):
-        dimension = DimensionSCD2(name, self.metadata, self.specifications)
+        dimension = DimensionSCD2(name, self.metadata, self.specifications, self.language)
         self.dimensions.append(dimension)
 
     def get_dimension(self, name):
