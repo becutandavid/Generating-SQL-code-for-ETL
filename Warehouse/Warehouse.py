@@ -46,7 +46,7 @@ class Warehouse:
 
         dimension_Names = self.dimension_names()
         for dim in dimension_Names:
-            self.add_dimension_scd1(dim)
+            self.add_dimension_scd2(dim)
 
     def _connect_to_db(self):
         try:

@@ -10,9 +10,9 @@ class Attribute:
         self.metadata = metadata
 
         if metadata is not None:
-            self.data_type = metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'udt_name'].to_numpy()[0]
-            self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'is_nullable'].to_numpy()[0] == 'YES' else False
-            self.length = Attribute.nan_convert(metadata.loc[np.logical_and(metadata['table_schema'] == schema, np.logical_and(metadata['table_name'] == table, metadata['column_name'] == attribute)),'character_maximum_length'].to_numpy()[0])
+            self.data_type = metadata.loc[np.logical_and(metadata['table_schema'].str.lower() == schema.lower(), np.logical_and(metadata['table_name'].str.lower() == table.lower(), metadata['column_name'].str.lower() == attribute.lower())),'udt_name'].to_numpy()[0]
+            self.nullable = True if metadata.loc[np.logical_and(metadata['table_schema'].str.lower() == schema.lower(), np.logical_and(metadata['table_name'].str.lower() == table.lower(), metadata['column_name'].str.lower() == attribute.lower())),'is_nullable'].to_numpy()[0] == 'YES' else False
+            self.length = Attribute.nan_convert(metadata.loc[np.logical_and(metadata['table_schema'].str.lower() == schema.lower(), np.logical_and(metadata['table_name'].str.lower() == table.lower(), metadata['column_name'].str.lower() == attribute.lower())),'character_maximum_length'].to_numpy()[0])
 
     @staticmethod
     def nan_convert(x):

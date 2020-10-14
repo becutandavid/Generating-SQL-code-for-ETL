@@ -1,0 +1,165 @@
+CREATE SCHEMA platforma;
+
+CREATE TABLE platforma.Users(
+    Id serial PRIMARY KEY ,
+    FirstName varchar(20) NOT NULL ,
+    LastName varchar(30) NOT NULL ,
+    Sex char(1) NOT NULL ,
+        CHECK ( Sex = 'M' OR Sex = 'F' ) ,
+    Email varchar(40) NOT NULL UNIQUE ,
+    Username varchar(53) NOT NULL UNIQUE ,
+    Password varchar(20) NOT NULL
+);
+
+CREATE TABLE platforma.Admins(
+    Id serial PRIMARY KEY ,
+    UserId int ,
+    FOREIGN KEY (UserId) REFERENCES platforma.Users(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- za liceto da bide instruktor treba minimum da ima 18 godini
+CREATE TABLE platforma.Instructors(
+    Id serial PRIMARY KEY ,
+    UserId int ,
+    Age int NOT NULL ,
+        CHECK ( Age > 17 ),
+    Country varchar(15) NOT NULL ,
+    AdminId int ,
+    FOREIGN KEY (UserId) REFERENCES platforma.Users(Id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (AdminId) REFERENCES platforma.Admins(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- za da mozhe da se registrira kako student mora da ima minimum 16 godini
+create table platforma.Students(
+    Id serial PRIMARY KEY ,
+    UserId int ,
+    Age int NOT NULL ,
+        CHECK ( Age > 15 ) ,
+    Country varchar(15) NOT NULL ,
+    Tokens int NOT NULL default 50 ,
+        CHECK ( Tokens > 0) ,
+    FOREIGN KEY (UserId) REFERENCES platforma.Users(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Forums(
+    Id serial PRIMARY KEY ,
+    Description varchar NOT NULL UNIQUE
+);
+
+CREATE TABLE platforma.Forums_Instructors(
+    Id serial PRIMARY KEY ,
+    ForumId int ,
+    InstructorId int ,
+    Comment varchar NOT NULL ,
+    DateComment date NOT NULL default now() ,
+    FOREIGN KEY (ForumId) REFERENCES platforma.Forums(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (InstructorId) REFERENCES platforma.Instructors(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Forums_Students(
+    Id serial PRIMARY KEY ,
+    ForumId int ,
+    StudentId int ,
+    Comment varchar NOT NULL ,
+    DateComment date NOT NULL default now() ,
+    FOREIGN KEY (ForumId) REFERENCES platforma.Forums(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (StudentId) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Categories(
+    Id serial PRIMARY KEY ,
+    Name varchar(25) NOT NULL UNIQUE
+);
+
+CREATE TABLE platforma.Courses(
+    Id serial PRIMARY KEY ,
+    InstructorId int ,
+    Name varchar(100) NOT NULL ,
+    Description varchar ,
+    FOREIGN KEY (InstructorId) REFERENCES platforma.Instructors(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Category_Courses(
+    Id serial PRIMARY KEY ,
+    CourseId int ,
+    CategoryId int ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CategoryId) REFERENCES platforma.Categories(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Prices(
+    Id serial PRIMARY KEY ,
+    CourseId int ,
+    Price int NOT NULL default 9 ,
+    DateStart date NOT NULL default now() ,
+    DateEnd date ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+--Img ni sluzhi kako thumbnail na videoto
+CREATE TABLE platforma.Videos(
+    Id serial PRIMARY KEY ,
+    CourseId int ,
+    Name varchar(100) NOT NULL UNIQUE ,
+    PathVideo varchar NOT NULL ,
+    PathImg varchar NOT NULL ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Documents(
+    Id serial PRIMARY KEY ,
+    CourseId int ,
+    Name varchar(50) NOT NULL ,
+    Path varchar NOT NULL ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Bought_Courses(
+    Id serial PRIMARY KEY ,
+    StudentId int ,
+    CourseId int ,
+    DateBought date NOT NULL default now() ,
+    FOREIGN KEY (StudentId) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Watched_Courses(
+    Id serial PRIMARY KEY ,
+    StudentId int ,
+    CourseId int ,
+    DateFinished date ,
+    FOREIGN KEY (StudentId) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Course_Review(
+    Id serial PRIMARY KEY ,
+    StudentId int ,
+    CourseId int ,
+    Grade int ,
+        CHECK ( Grade BETWEEN 1 AND 10) ,
+    DateReview date NOT NULL default now() ,
+    FOREIGN KEY (StudentId) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Certificates(
+    Id serial PRIMARY KEY ,
+    StudentId int ,
+    CourseId int ,
+    DateCertified date NOT NULL default now(),
+    FOREIGN KEY (StudentId) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE platforma.Course_Recommendations(
+    Id serial PRIMARY KEY ,
+    Student1Id int ,
+    Student2Id int ,
+    CourseId int ,
+    FOREIGN KEY (Student1Id) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (Student2Id) REFERENCES platforma.Students(Id) ON DELETE SET NULL ON UPDATE CASCADE ,
+    FOREIGN KEY (CourseId) REFERENCES platforma.Courses(Id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE INDEX idx_BC_student ON platforma.bought_courses(studentid);

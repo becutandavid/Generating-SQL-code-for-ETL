@@ -30,17 +30,19 @@ class Dimension:
             attribute (string): attribute/column name
         """
         metadata = self.metadata
-        
         # check if attribute is foreign key
-        if (pd.isna(metadata.loc[(metadata['table_schema'] == schema) & (metadata['table_name'] == table) & (metadata['column_name'] == attribute), 'foreign_table_schema'].to_numpy()[0])):
+        if (pd.isna(metadata.loc[(metadata['table_schema'].str.lower() == schema.lower()) & (metadata['table_name'].str.lower() == table.lower()) & (metadata['column_name'].str.lower() == attribute.lower()), 'foreign_table_schema'].to_numpy()[0])):
             attr = Attribute(schema, table, attribute, metadata)
         else:
             # get foreign schema, table and attribute names and create a ForeignKey attribute.
-            f_schema = metadata.loc[(metadata['table_schema'] == schema) & (metadata['table_name'] == table) & (metadata['column_name'] == attribute), 'foreign_table_schema'].to_numpy()[0]
-            f_table = metadata.loc[(metadata['table_schema'] == schema) & (metadata['table_name'] == table) & (metadata['column_name'] == attribute), 'foreign_table_name'].to_numpy()[0]
-            f_attribute = metadata.loc[(metadata['table_schema'] == schema) & (metadata['table_name'] == table) & (metadata['column_name'] == attribute), 'foreign_column_name'].to_numpy()[0]
+            f_schema = metadata.loc[(metadata['table_schema'].str.lower() == schema.lower()) & (metadata['table_name'].str.lower() == table.lower()) & (metadata['column_name'].str.lower() == attribute.lower()), 'foreign_table_schema'].to_numpy()[0]
+            f_table = metadata.loc[(metadata['table_schema'].str.lower() == schema.lower()) & (metadata['table_name'].str.lower() == table.lower()) & (metadata['column_name'].str.lower() == attribute.lower()), 'foreign_table_name'].to_numpy()[0]
+            f_attribute = metadata.loc[(metadata['table_schema'].str.lower() == schema.lower()) & (metadata['table_name'].str.lower() == table.lower()) & (metadata['column_name'].str.lower() == attribute.lower()), 'foreign_column_name'].to_numpy()[0]
 
-            attr = ForeignKey(schema, table, attribute, f_schema, f_table, f_attribute, metadata)
+            if f_schema == schema and f_table == table and f_attribute == attribute:
+                attr = Attribute(schema,table,attribute,metadata)
+            else:
+                attr = ForeignKey(schema, table, attribute, f_schema, f_table, f_attribute, metadata)
 
         self.attributes.append(attr)
 
