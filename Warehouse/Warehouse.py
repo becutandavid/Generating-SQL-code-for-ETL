@@ -134,8 +134,9 @@ class Warehouse:
                 file.write(f'\n -- Procedure for {dim}\n')
                 file.write(self.get_dimension(dim).sp_performETL())
 
-            for dim in self.dimensions:
-                file.write(f'CALL {dim.get_etl_name()}();\n')
+            if self.language == 'POSTGRES':
+                for dim in self.dimensions:
+                    file.write(f'CALL {dim.get_etl_name()}();\n')
         file.close()
 
     def etl(self):
@@ -146,8 +147,9 @@ class Warehouse:
             submission.append(self.get_dimension(dim).ddl())
             submission.append(self.get_dimension(dim).sp_performETL())
 
-        for dim in self.dimension_names():
-            submission.append(f'CALL {self.get_dimension(dim).get_etl_name()}();')
+        if self.language == 'POSTGRES':
+            for dim in self.dimension_names():
+                submission.append(f'CALL {self.get_dimension(dim).get_etl_name()}();')
 
         submission = '\n'.join(submission)
         cur.execute(submission)
