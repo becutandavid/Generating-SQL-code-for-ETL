@@ -1,4 +1,5 @@
 dim_name,table_schema,table_name,column_name
-dim_territory,Sales,SalesTerritory,TerritoryID
-dim_territory,Sales,SalesTerritory,Name
-dim_territory,Sales,SalesTerritory,CountryRegionCode
+dim_students,platforma,Students,UserId
+dim_students,platforma,Users,FirstName
+dim_students,platforma,Users,LastName
+dim_students,platforma,Users,Id
